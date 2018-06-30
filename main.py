@@ -2,6 +2,7 @@ from PIL import Image
 import pylab as pl
 import os
 import numpy as np
+import imtool
 
 localdir = os.getcwd()
 class PILtest:
@@ -162,6 +163,32 @@ class NumpyTest():
         #2.1.2=>2.2.2
         pl.imshow(img2)
 
+        pl.figure()
+        #对图像灰度值压缩在100-200
+        im3 = (im/255)*100+100
+        img3 = Image.fromarray(im3)
+        print(im3)
+        pl.imshow(img3)
+
+        pl.figure()
+        #对图像进行平方处理
+        im4 = 255*(im/255)**2
+        img4 = Image.fromarray(im4)
+        pl.imshow(img4)
+
+        pl.show()
+        return
+
+    def CDFHistAverage(self,img):
+        '''
+        直方图均衡化，
+        将一幅图像的灰度直方图变平，使每个灰度值的分布概率相同
+        '''
+        pl.figure()
+        im = np.array(img.convert('L'))
+        im2,cdf = imtool.histeq(im)
+        img2 = Image.fromarray(im2)
+        pl.imshow(img2)
         pl.show()
         return
 
@@ -186,7 +213,8 @@ def main():
     '''Numpy API test'''
     test3 = NumpyTest()
     #test3.NpArraytest(img)
-    test3.GrayLVtransf(img)
+    #test3.GrayLVtransf(img)
+    test3.CDFHistAverage(img)
     return
 
 if __name__ == '__main__':
