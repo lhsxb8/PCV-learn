@@ -2,6 +2,7 @@ from PIL import Image
 import pylab as pl
 import os
 import numpy as np
+from scipy.ndimage import filters
 import imtool
 
 localdir = os.getcwd()
@@ -192,6 +193,37 @@ class NumpyTest():
         pl.show()
         return
 
+class ScipyTest():
+    def GrayGuassianFliter(self,img,a):
+        '''灰度图高斯模糊测试'''
+        pl.figure
+        im = np.array(img.convert('L'))
+        im2 = filters.gaussian_filter(im,a)
+        img = Image.fromarray(im2)
+        pl.imshow(img)
+        pl.show()
+        return
+
+    def ColorGuassianFliter(self,img,a):
+        '''
+        彩色图高斯模糊测试
+        可以看到,a越大,模糊程度越大
+        '''
+        pl.figure()
+        im = np.array(img)
+        im2 = np.zeros(im.shape)
+        for i in range(3):
+            im2[:,:,i] = filters.gaussian_filter(im[:,:,i],a)
+            #其中的im2[:,:,i]相当于把所有的子矩阵的第i维提取出来
+            #在这里就是等于所有像素值的第i个通道值
+        im2 = np.uint8(im2)
+        img = Image.fromarray(im2)
+        pl.imshow(img)
+        pl.show()
+        return
+
+
+
 def main():
     #todo
     img = Image.open(localdir+"\\picture_test\\test.jpg","r")
@@ -211,10 +243,15 @@ def main():
     #test2.DrawHist(img)
     
     '''Numpy API test'''
-    test3 = NumpyTest()
+    #test3 = NumpyTest()
     #test3.NpArraytest(img)
     #test3.GrayLVtransf(img)
-    test3.CDFHistAverage(img)
+    #test3.CDFHistAverage(img)
+
+
+    '''Scipy API test'''
+    test4 = ScipyTest()
+    test4.ColorGuassianFliter(img,5)
     return
 
 if __name__ == '__main__':
