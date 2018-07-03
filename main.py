@@ -222,7 +222,66 @@ class ScipyTest():
         pl.show()
         return
 
+    def SobelTest(self,img):
+        '''
+        Sobel算子的测试
+         |-1 0 1|   |-1 -2 -1|
+         |-2 0 2|   | 0  0  0|
+         |-1 0 1|   | 1  2  1|
+         Dx         Dy
+         使用Sobel滤波器计算x和y方向的倒数，以及梯度的大小
+        '''
+        im = np.array(img.convert('L'))
 
+        #Sobel 导数滤波器
+        pl.figure()
+        imx = np.zeros(im.shape)
+        filters.sobel(im,1,imx)#save in the third var
+        img_x = Image.fromarray(imx)
+        pl.title("X-Image")
+        pl.imshow(img_x)
+
+        #As same as X
+        pl.figure()
+        imy = np.zeros(im.shape)
+        filters.sobel(im,0,imy)
+        img_y = Image.fromarray(imy)
+        pl.title("Y-Image")
+        pl.imshow(img_y)
+
+        pl.figure()
+        magnitude = np.sqrt(imx**2 + imy**2)
+        img_m = Image.fromarray(magnitude)
+        pl.title("Magnitude-Image")
+        pl.imshow(img_m)
+
+        pl.show()
+        return 
+
+    def GuassianFilter_2(self,img,sigma = 0.5):
+        '''
+        之前用过GuassianFilter函数来做高斯模糊
+        可以通过使用额外的参数来计算高斯导数
+        '''
+        im = np.array(img.convert('L'))
+
+        pl.figure()
+        imx = np.zeros(im.shape)
+        filters.gaussian_filter(im,(sigma,sigma),(0,1),imx)
+        img_X = Image.fromarray(imx)
+        pl.title("X")
+        print(imx)
+        pl.imshow(img_X)
+
+        pl.figure()
+        imy = np.zeros(im.shape)
+        filters.gaussian_filter(im,(sigma,sigma),(1,0),imy)
+        img_Y = Image.fromarray(imy)
+        pl.title("Y")
+        pl.imshow(img_Y)
+
+        pl.show()
+        return
 
 def main():
     #todo
@@ -251,7 +310,10 @@ def main():
 
     '''Scipy API test'''
     test4 = ScipyTest()
-    test4.ColorGuassianFliter(img,5)
+    #test4.ColorGuassianFliter(img,5)
+    #test4.SobelTest(img)
+    test4.GuassianFilter_2(img)
+
     return
 
 if __name__ == '__main__':
