@@ -3,6 +3,7 @@ import pylab as pl
 import os
 import numpy as np
 from scipy.ndimage import filters
+from scipy.ndimage import measurements,morphology
 import imtool
 
 localdir = os.getcwd()
@@ -283,6 +284,36 @@ class ScipyTest():
         pl.show()
         return
 
+    def MorphologyTest(self,img):
+        #https://en.wikipedia.org/wiki/Mathematical_morphology
+        im = np.array(img.convert('L'))
+        im = 1 * (im < 128) #二值化
+
+        #使用label函数寻找单个物体
+        #并按照他们属于哪个对象将整数标签给像素赋值
+        labels, nbr_objects = measurements.label(im)
+        print("Number of objects:" ,nbr_objects)
+
+        pl.figure()
+        img_labels = Image.fromarray(labels)
+
+        pl.imshow(img_labels)
+
+        #使用二进制开(binary open)操作
+        #使对象之间小连接移除
+        im_open = morphology.binary_opening(im, np.ones((9,5)),iterations=2)
+        #binary_opening第二个参数为结构元素：
+        #表示以一个像素为中心时，使用哪些相邻的像素，
+        #one((9,5))表示在y方向上使用9个像素（上4，下4，和自己）
+        #在x上左2右2和自己
+        #iterations 决定执行该操作的次数
+
+        labels_open, nbr_objects_open = measurements.label(im_open)
+        print("Number of objects:" ,nbr_objects_open)
+
+        pl.show()
+        return
+
 def main():
     #todo
     img = Image.open(localdir+"\\picture_test\\test.jpg","r")
@@ -312,7 +343,8 @@ def main():
     test4 = ScipyTest()
     #test4.ColorGuassianFliter(img,5)
     #test4.SobelTest(img)
-    test4.GuassianFilter_2(img)
+    #test4.GuassianFilter_2(img)
+    test4.MorphologyTest(img)
 
     return
 
