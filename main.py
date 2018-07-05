@@ -3,6 +3,7 @@ import pylab as pl
 import os
 import numpy as np
 from scipy.ndimage import filters
+from scipy.ndimage import measurements,morphology,center_of_mass
 import imtool
 
 localdir = os.getcwd()
@@ -313,6 +314,28 @@ class ScipyTest():
         pl.show()
         return
 
+    def CenterOfMassTest(self,img):
+        '''
+        使用 center_of_mass API 
+        来计算图片质心
+        '''
+        im = np.array(img.convert('L'))
+        im = 1 * (im < im.mean())#二值化
+
+        im_new = 255 * im
+        img_new = Image.fromarray(im_new)
+
+        labels_im ,nbr_objects= measurements.label(im)
+        cen = center_of_mass(im)
+
+        pl.figure()
+        pl.imshow(img_new)
+        pl.plot(cen[1],cen[0],'r*')
+        pl.show()
+
+        print(cen,nbr_objects)
+        return
+
 def main():
     #todo
     img = Image.open(localdir+"\\picture_test\\test.jpg","r")
@@ -343,7 +366,8 @@ def main():
     #test4.ColorGuassianFliter(img,5)
     #test4.SobelTest(img)
     #test4.GuassianFilter_2(img)
-    test4.MorphologyTest(img)
+    #test4.MorphologyTest(img)
+    test4.CenterOfMassTest(img)
 
     return
 
