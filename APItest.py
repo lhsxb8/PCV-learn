@@ -4,6 +4,7 @@ import os
 import numpy as np
 from scipy.ndimage import filters
 from scipy.ndimage import measurements,morphology,center_of_mass
+from scipy.signal import convolve
 import imtool
 
 localdir = os.getcwd()
@@ -336,6 +337,16 @@ class ScipyTest():
         print(cen,nbr_objects)
         return
 
+    def QuotientImageTest(self,img,a):
+        '''使用商图像法进行图像二值化'''
+        im = np.array(img.convert('L'))
+        #获取高斯函数
+        im_Guassian = filters.gaussian_filter(im,a)
+
+        im_new = im // im_Guassian
+        print(im_new)
+        return
+
 def main():
     #todo
     img = Image.open(localdir+"\\picture_test\\test.jpg","r")
@@ -367,7 +378,8 @@ def main():
     #test4.SobelTest(img)
     #test4.GuassianFilter_2(img)
     #test4.MorphologyTest(img)
-    test4.CenterOfMassTest(img)
+    #test4.CenterOfMassTest(img)
+    test4.QuotientImageTest(img,5)
 
     return
 
