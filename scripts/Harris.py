@@ -69,7 +69,47 @@ def plot_harris_points(img, filtered_coords):
     pl.show()
     return 
 
+def get_descriptors(image,filtered_coords,wid = 5):
+    '''
+    对于每个返回的点，返回点周围 2*wid +1个像素 的值
+    '''    
+    desc = []
+    for coords in filtered_coords:
+        patch = image[coords[0]-wid:coords[0]+wid+1,
+            coords[1] - wid : coords[1] + wid +1].flatten()
+        desc.append(patch)
     
+    return desc
+
+def match(desc1,desc2,threshold = 0.5):
+    '''
+    对于第一幅图像中的每个角点描述子，使用归一化互相关
+    选取它在第二幅图像中的匹配角点
+    '''
+    
+    n = len(desc1[0])
+
+    #点对的距离
+    d = -ones((len(desc1),len(desc2)))
+    for i in range(len(desc1)):
+        for j in range(len(Desc2)):
+            d1 = (desc1[i] - np.mean(desc1[i])) / np.std(desc1[i])
+            d2 = (desc2[j] - np.mean(desc2[j])) / np.std(desc2[j])
+            ncc_value = sum(d1 * d2)/(n-1)
+            if ncc_value > threshold:
+                d[i,j] = ncc_value
+    
+    ndx = argsort(-d)
+    matchscores = ndx[:,0]
+
+    return matchscores
+
+def appendimages(im1,im2):
+    '''
+    返回将两幅图像并排拼接的一幅新的图像
+
+    '''
+    #TODO
 
 def main():
     cd = os.path.dirname(os.getcwd())
