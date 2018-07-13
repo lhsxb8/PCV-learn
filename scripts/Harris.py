@@ -21,12 +21,12 @@ def compute_harris_response(im,sigma = 3):
     #计算特征值和迹
     Wdet = Wxx*Wyy - Wxy**2
     Wtr = Wxx + Wyy
+    #print(Wdet/Wtr)
 
     return Wdet/Wtr
 
-    return 
 
-def get_harris_points(harrisim, min_dist = 10, threshold = 0.05):
+def get_harris_points(harrisim, min_dist = 1, threshold = 0.05):
     '''从一幅Harris响应图像中 返回角点，min_dist 为分割角点'''
 
     #寻找高于阈值的候选角点
@@ -35,26 +35,27 @@ def get_harris_points(harrisim, min_dist = 10, threshold = 0.05):
 
     #得到候选点的坐标
     coords = np.array(harrisim_t.nonzero()).T
-
+    #print(coords.shape[0])
+    #print(coords)
     #以及它们的Harris响应值
     candidate_values = [harrisim[c[0],c[1]] for c in coords]
-
+    
     #对候选点按照Harris 响应值进行排序
-    index = np.argsort(candidate_values)
-
+    index = np.argsort(candidate_values,axis=0)
+    print(index)
     #将可行点的位置保存到数组中
-    allowed_locations = np.ones(harrisim.shape)
-    #allowed_locations[min_dist : -min_dist, min_dist : -min_dist] = 1
-    #print(allowed_locations)
+    allowed_locations = np.zeros(harrisim.shape)
+    allowed_locations[min_dist:-min_dist , min_dist:-min_dist] = 1
+    print(allowed_locations)
 
     #按照min_distance原则，选择最佳Harris 点
     filtered_coords = []
     for i in index:
-        if allowed_locations[coords[1,0],coords[i,1]] == 1:
+        if allowed_locations[coords[i,0],coords[i,1]] == 1:
             filtered_coords.append(coords[i])
-            allowed_locations[(coords[i,0] - min_dist):(coords[1,0] + min_dist)
-            ,(coords[i,1]-min_dist):(coords[i,1]+min_dist)] = 0
-    print(filtered_coords)
+            allowed_locations[(coords[i,0]-min_dist):(coords[i,0] + min_dist),
+            (coords[i,1]-min_dist):(coords[i,1]+min_dist)] = 0
+    #print(filtered_coords)
     return filtered_coords
 
 def plot_harris_points(img, filtered_coords):
@@ -65,7 +66,7 @@ def plot_harris_points(img, filtered_coords):
     pl.gray()
     pl.imshow(img)
     pl.plot([p[1] for p in filtered_coords],
-    [p[0] for p in filtered_coords],"*")
+    [p[0] for p in filtered_coords],"r*")
     pl.show()
     return 
 
@@ -104,21 +105,80 @@ def match(desc1,desc2,threshold = 0.5):
 
     return matchscores
 
+def match_twosided(desc1,desc2,threshold = 0.5):
+    '''
+    两边对称的match
+    '''
+    matches_12 = match(desc1,desc2,threshold)
+    matches_21 = match(desc2,desc1,threshold)
+
+    ndx_12 = where(matches_12 >= 0)[0]
+
+    #去除非对称的匹配
+    for n in ndx_12:
+        if matches_21[matches_12[n]] != n:
+            matches_12[n] = -1
+
+    return matches_12
+
 def appendimages(im1,im2):
     '''
     返回将两幅图像并排拼接的一幅新的图像
 
     '''
-    #TODO
+    
+    #首先要确保两张图像的行数相同
+    #对较少行数的图像进行填充
+
+    row1 = im1.shape[0]
+    row2 = im2.shape[0]
+
+    if row1 < row2:
+        im1 = np.concatenate(im1,np.zeros((row2 - row1,im.shape[1])),axis = 0)
+    elif row2 < row1:
+        im2 = np.concatenate(im2,np.zeros((row2 - row1,im.shape[1])),axis = 0)
+
+    #如果行数相同，直接返回
+
+    return np.concatenate((im1,im2),axis = 1)
+
+def plot_matches(im1,im2,locs1,locs2,matchscores,show_below = True):
+    '''
+    显示一幅带有连接匹配之间连线的图片
+    输入：im1,im2 数组图像 locs1,locs2 特征位置 matchscores(match()的输出)
+    show_below 图像是否应该显示在下方
+    '''
+
+    im3 = appendimages(im1,im2)
+    if show_below:
+        im3 = np.vstack((im3,im3))
+        # np.vstack 垂直堆数组
+    
+    pl.imshow(im3)
+
+    cols1 = im1.shape[1]
+    for i,m in enumerate(matchscres):
+        if m > 0:
+            pl.plot([locs1[i][1],locs2[m][1]+cols1],[locs1[i][0],locs2[m][0],'c'])
+    pl.axis('off')
+
 
 def main():
     cd = os.path.dirname(os.getcwd())
     img = Image.open(cd + "\\PCVwithPython\\picture_test\\test.jpg","r")
     im = np.array(img.convert('L'))
+
+    wid = 5
     harrisim = compute_harris_response(im)
-    filtered_coords = get_harris_points(harrisim,6)
-    print(filtered_coords)
-    plot_harris_points(im,filtered_coords)
+    filtered_coords = get_harris_points(harrisim,min_dist=10,threshold=0.05)
+    #print(filtered_coords)
+    #plot_harris_points(im,filtered_coords)
+    d1 = get_descriptors(im,filtered_coords,wid)
+    filtered_coords2 = get_harris_points(harrisim,wid+1)
+
+    mathches = math
+    new_image = appendimages(im ,im)
+
 
     return 
 
