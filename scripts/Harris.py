@@ -1,4 +1,5 @@
 import numpy as np 
+import time
 import pylab as pl 
 import os
 from PIL import Image
@@ -91,16 +92,16 @@ def match(desc1,desc2,threshold = 0.5):
     n = len(desc1[0])
 
     #点对的距离
-    d = -ones((len(desc1),len(desc2)))
+    d = -np.ones((len(desc1),len(desc2)))
     for i in range(len(desc1)):
-        for j in range(len(Desc2)):
+        for j in range(len(desc2)):
             d1 = (desc1[i] - np.mean(desc1[i])) / np.std(desc1[i])
             d2 = (desc2[j] - np.mean(desc2[j])) / np.std(desc2[j])
             ncc_value = sum(d1 * d2)/(n-1)
             if ncc_value > threshold:
                 d[i,j] = ncc_value
     
-    ndx = argsort(-d)
+    ndx = np.argsort(-d)
     matchscores = ndx[:,0]
 
     return matchscores
@@ -112,7 +113,7 @@ def match_twosided(desc1,desc2,threshold = 0.5):
     matches_12 = match(desc1,desc2,threshold)
     matches_21 = match(desc2,desc1,threshold)
 
-    ndx_12 = where(matches_12 >= 0)[0]
+    ndx_12 = np.where(matches_12 >= 0)[0]
 
     #去除非对称的匹配
     for n in ndx_12:
@@ -134,9 +135,9 @@ def appendimages(im1,im2):
     row2 = im2.shape[0]
 
     if row1 < row2:
-        im1 = np.concatenate(im1,np.zeros((row2 - row1,im.shape[1])),axis = 0)
+        im1 = np.concatenate((im1,np.zeros((row2 - row1,im1.shape[1]))),axis = 0)
     elif row2 < row1:
-        im2 = np.concatenate(im2,np.zeros((row2 - row1,im.shape[1])),axis = 0)
+        im2 = np.concatenate((im2,np.zeros((row2 - row1,im2.shape[1]))),axis = 0)
 
     #如果行数相同，直接返回
 
@@ -157,29 +158,43 @@ def plot_matches(im1,im2,locs1,locs2,matchscores,show_below = True):
     pl.imshow(im3)
 
     cols1 = im1.shape[1]
-    for i,m in enumerate(matchscres):
+    for i,m in enumerate(matchscores):
         if m > 0:
-            pl.plot([locs1[i][1],locs2[m][1]+cols1],[locs1[i][0],locs2[m][0],'c'])
+            pl.plot([locs1[i][1],locs2[m][1]+cols1],[locs1[i][0],locs2[m][0]],'c')
     pl.axis('off')
 
 
 def main():
+    time_start = time.time()
     cd = os.path.dirname(os.getcwd())
-    img = Image.open(cd + "\\PCVwithPython\\picture_test\\test.jpg","r")
-    im = np.array(img.convert('L'))
+    print(cd)
+    img1 = Image.open(cd + "\\PCVwithPython\\picture_test\\test.jpg","r")
+    img2 = Image.open(cd + "\\PCVwithPython\\picture_test\\test.jpg","r")
+    im1 = np.array(img1.convert('L'))
+    im2 = np.array(img2.convert('L'))
+
 
     wid = 5
-    harrisim = compute_harris_response(im)
-    filtered_coords = get_harris_points(harrisim,min_dist=10,threshold=0.05)
+    harrisim = compute_harris_response(im1,sigma=5)
+    filtered_coords_1 = get_harris_points(harrisim,min_dist=10,threshold=0.05)
     #print(filtered_coords)
     #plot_harris_points(im,filtered_coords)
-    d1 = get_descriptors(im,filtered_coords,wid)
-    filtered_coords2 = get_harris_points(harrisim,wid+1)
+    d1 = get_descriptors(im1,filtered_coords_1,wid)
+    
+    harrisim = compute_harris_response(im2,sigma=5)
+    filtered_coords_2 = get_harris_points(harrisim,wid+1)
+    d2 = get_descriptors(im2,filtered_coords_2,wid)
 
-    mathches = math
-    new_image = appendimages(im ,im)
+    print('Start Matching')
+    matches = match_twosided(d1,d2)
 
+    pl.figure()
+    pl.gray()
+    plot_matches(im1,im2,filtered_coords_1,filtered_coords_2,matches)
+    pl.show()
 
+    time_end = time.time()
+    print(time_end - time_start)
     return 
 
 if __name__ == '__main__':
