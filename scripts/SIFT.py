@@ -32,3 +32,16 @@ def read_feature_from_file(filename):
     f = np.loadtext(filename)
     #返回特征位置、描述子
     return f[:,:4], f[:,4:]
+
+def write_feature_to_file(filename,locs,desc):
+    '''
+    将特征位置和描述子保存到文件中
+    '''
+    np.savetxt(filename,np.hstack(locs,desc))
+
+
+def main():
+    return 
+
+if __name__ == '__main__':
+    main()
