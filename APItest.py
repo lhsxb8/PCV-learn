@@ -195,6 +195,11 @@ class NumpyTest():
         pl.show()
         return
 
+    def HstackTest():
+        a = np.array((1,2,3),(2,3,4))
+        b = np.array((11,12,13),(15,16,17))
+        return np.hstack(a,b)
+
 class ScipyTest():
     def GrayGuassianFliter(self,img,a):
         '''灰度图高斯模糊测试'''
